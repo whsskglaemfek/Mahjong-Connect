@@ -2,457 +2,341 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>글로벌마켓 캘린더: 세계 증시 이벤트 알림 서비스 데모</title>
-
+    <title>사천성 게임 프로토타입 + 애니메이션</title>
     <style>
-      /* 기본 설정 */
+      :root {
+        --tile-size: 50px;
+        --gap-size: 4px;
+        --bg-color: #2c3e50;
+        --tile-color: #ecf0f1;
+        --selected-color: #f1c40f;
+        --line-color: #e74c3c; /* 연결선 색상 */
+      }
       body {
-        font-family: "Malgun Gothic", "Segoe UI", Tahoma, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f7f9;
-        color: #333;
-      }
-
-      /* Header */
-      header {
-        background-color: #004d99; /* 서비스 아이덴티티 색상 */
-        color: white;
-        padding: 20px 40px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      header h1 {
-        margin: 0 0 5px 0;
-        font-size: 28px;
-      }
-
-      .subtitle {
-        margin: 0 0 15px 0;
-        font-size: 14px;
-        opacity: 0.8;
-      }
-
-      .controls button,
-      .controls select {
-        padding: 8px 15px;
-        margin-right: 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        background-color: #0066cc;
-        color: white;
-        font-weight: bold;
-        transition: background-color 0.2s;
-        appearance: none; /* select 기본 스타일 제거 */
-      }
-
-      .controls button:hover:not(.active),
-      .controls select:hover {
-        background-color: #0059b3;
-      }
-
-      .controls .active {
-        background-color: white;
-        color: #004d99;
-      }
-
-      .filter-btn {
-        background-color: #ff9900; /* 강조 색상 */
-      }
-
-      /* Main Layout (Sidebar + Calendar) */
-      main {
         display: flex;
-        padding: 20px 40px;
-        gap: 20px;
-      }
-
-      /* Sidebar */
-      .sidebar {
-        width: 280px;
-        flex-shrink: 0;
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      }
-
-      .sidebar h3 {
-        color: #004d99;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 5px;
-        margin-top: 0;
-        margin-bottom: 15px;
-      }
-
-      .alert-info {
-        margin-bottom: 25px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-      }
-
-      .alert-info strong {
-        display: block;
-        margin-bottom: 5px;
-      }
-
-      .alert-info button {
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        margin-top: 8px;
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      .sidebar ul {
-        list-style: none;
-        padding-left: 0;
-        margin-bottom: 25px;
-      }
-
-      .sidebar li {
-        font-size: 14px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        color: #0066cc;
-        line-height: 1.4;
-      }
-
-      .sidebar p {
-        font-size: 14px;
-        cursor: pointer;
-        color: #ff9900;
-        font-weight: bold;
-      }
-
-      /* Calendar View */
-      .calendar-view {
-        flex-grow: 1;
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      }
-
-      .calendar-header {
-        display: flex;
-        justify-content: space-between;
+        flex-direction: column;
         align-items: center;
-        margin-bottom: 15px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-      }
-
-      .calendar-header h2 {
-        margin: 0;
-        color: #004d99;
-      }
-
-      .nav-arrows span {
-        font-size: 20px;
-        margin-left: 15px;
-        cursor: pointer;
-        font-weight: bold;
-        color: #555;
-      }
-
-      .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        border-top: 1px solid #ddd;
-        border-left: 1px solid #ddd;
-      }
-
-      .day-name {
-        text-align: center;
-        padding: 10px 5px;
-        font-weight: bold;
-        background-color: #eef;
-        border-right: 1px solid #ddd;
-        border-bottom: 1px solid #ddd;
-      }
-
-      /* 주말 강조 */
-      .calendar-grid .day-name:first-child,
-      .calendar-grid .day:nth-child(7n + 1) .date {
-        color: #d9534f; /* 일요일 */
-      }
-      .calendar-grid .day-name:last-child,
-      .calendar-grid .day:nth-child(7n + 0) .date {
-        color: #337ab7; /* 토요일 */
-      }
-
-      .day {
-        padding: 8px;
-        height: 120px; /* 높이 고정 */
-        border-right: 1px solid #ddd;
-        border-bottom: 1px solid #ddd;
-        position: relative;
-        overflow-y: auto; /* 이벤트가 많을 때 스크롤 */
-        background-color: #fff;
-      }
-
-      .day.empty {
-        background-color: #f9f9f9;
-      }
-
-      .day .date {
-        font-weight: bold;
-        font-size: 16px;
-        display: block;
-        margin-bottom: 5px;
-      }
-
-      .day.active-day {
-        background-color: #fffbe6; /* 오늘 날짜 강조 */
-        border: 2px solid #ffcc00;
-        padding: 6px; /* 테두리 두께만큼 패딩 조정 */
-      }
-
-      /* Event Styling */
-      .event {
-        font-size: 12px;
-        padding: 3px 5px;
-        margin-bottom: 4px;
-        border-radius: 3px;
+        background-color: var(--bg-color);
         color: white;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        cursor: pointer;
-        line-height: 1.3;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        font-family: sans-serif;
       }
-
-      /* Event Type Colors (Key to Strategic Information) */
-      .event.policy {
-        background-color: #e74c3c; /* 정책: 중요 알림 - 빨강 */
-      }
-
-      .event.holiday {
-        background-color: #34495e; /* 휴장: 거래 불가 - 진한 회색 */
-      }
-
-      .event.earnings {
-        background-color: #2ecc71; /* 실적: 개별 종목 영향 - 초록 */
-      }
-
-      .event.indicator {
-        background-color: #3498db; /* 지표: 거시 경제 - 파랑 */
-      }
-
-      .event.ipo {
-        background-color: #9b59b6; /* IPO: 시장 유동성 - 보라 */
-      }
-
-      .event.conference {
-        background-color: #f39c12; /* 컨퍼런스: 산업/기술 - 주황 */
-      }
-
-      /* Footer/Related Content */
-      .related-content {
-        background-color: #e9ecef;
-        padding: 20px 40px;
+      /* 게임 컨테이너: 보드와 캔버스를 겹치기 위함 */
+      .game-container {
+        position: relative;
         margin-top: 20px;
-        border-top: 1px solid #ddd;
+        background: #34495e;
+        border-radius: 8px;
+        padding: 10px;
       }
-
-      .related-content h3 {
-        margin-top: 0;
-        color: #004d99;
-        margin-bottom: 15px;
+      #game-board {
+        display: grid;
+        gap: var(--gap-size);
+        /* padding은 컨테이너로 이동 */
       }
-
-      .related-content ul {
-        list-style: none;
-        padding-left: 0;
-        margin: 0;
+      /* 캔버스: 보드 위에 절대 위치로 겹침 */
+      #game-canvas {
+        position: absolute;
+        top: 10px; /* 컨테이너 padding 고려 */
+        left: 10px;
+        pointer-events: none; /* 마우스 클릭이 통과되도록 설정 */
+        z-index: 10; /* 보드보다 위에 표시 */
       }
-
-      .related-content li {
-        margin-bottom: 8px;
-      }
-
-      .related-content li a {
-        color: #0066cc;
-        text-decoration: none;
-        font-size: 14px;
-        background-color: white;
-        padding: 5px 10px;
+      .tile {
+        width: var(--tile-size);
+        height: var(--tile-size);
+        background-color: var(--tile-color);
+        color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
         border-radius: 4px;
-        display: inline-block;
-        border: 1px solid #ccc;
+        user-select: none;
+        box-sizing: border-box; /* 테두리 포함 크기 계산 */
       }
-
-      .related-content li a:hover {
-        text-decoration: underline;
-        background-color: #f0f0f0;
+      .tile.empty {
+        visibility: hidden;
       }
-
-      /* Scrollbar Style for Day Boxes (깔끔하게) */
-      .day::-webkit-scrollbar {
-        width: 4px;
+      .tile.selected {
+        border: 4px solid var(--selected-color);
+        /* transform 제거: 좌표 계산 단순화를 위해 */
       }
-
-      .day::-webkit-scrollbar-thumb {
-        background-color: #ccc;
-        border-radius: 2px;
+      .controls {
+        margin-top: 20px;
       }
-
-      .day::-webkit-scrollbar-track {
-        background: transparent;
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>🌏 글로벌마켓 캘린더</h1>
-      <p class="subtitle">
-        세계 증시 이벤트 알림 및 분석 서비스: 전략적 투자 활용 지원
-      </p>
-      <div class="controls">
-        <button class="active">월간</button>
-        <button>주간</button>
-        <button>타임라인</button>
-        <select>
-          <option>🔎 전체 국가</option>
-          <option>미국 (US)</option>
-          <option>유럽 (EU)</option>
-          <option>중국 (CN)</option>
-          <option>일본 (JP)</option>
-        </select>
-        <button class="filter-btn">⚙️ 맞춤 필터/관심 종목 설정</button>
-      </div>
-    </header>
+    <h1>사천성 프로토타입 (선 연결)</h1>
 
-    <main>
-      <aside class="sidebar">
-        <h3>🔔 맞춤 알림 설정 및 해설</h3>
-        <div class="alert-info">
-          <p><strong>[정책] FOMC 정책 발표 (D-3)</strong></p>
-          <button>✔ 알림 해제 (현재 설정됨)</button>
-        </div>
+    <div class="game-container">
+      <canvas id="game-canvas"></canvas>
+      <div id="game-board"></div>
+    </div>
 
-        <h3>🔥 실시간 이슈 분석 (일정별 심층 해설)</h3>
-        <ul>
-          <li>[해설] 연준의 '점도표' 변화 시나리오 분석</li>
-          <li>[뉴스] 중국 기술주, 대형 IPO 임박으로 인한 변동성 심화</li>
-          <li>[리포트] 유럽 증시, ECB 금리 결정 후 투자 전략</li>
-        </ul>
+    <div class="controls">
+      <button onclick="initGame()">게임 재시작</button>
+      <p>규칙: 2번 이하로 꺾이는 경로가 표시됩니다.</p>
+    </div>
 
-        <h3>💬 토론 커뮤니티 연계</h3>
-        <p>오늘의 🍎 Apple 실적 토론방 바로가기 &gt;</p>
-      </aside>
+    <script>
+      const ROWS = 8;
+      const COLS = 10;
+      const TILE_SIZE = 50;
+      const GAP_SIZE = 4;
+      const EMOJIS = [
+        "🍎",
+        "🍐",
+        "🍊",
+        "🍋",
+        "🍌",
+        "🍉",
+        "🍇",
+        "🍓",
+        "🍒",
+        "🥑",
+      ];
 
-      <section class="calendar-view">
-        <div class="calendar-header">
-          <h2>2025년 11월</h2>
-          <div class="nav-arrows">
-            <span>&lt;</span>
-            <span>&gt;</span>
-          </div>
-        </div>
+      let board = [];
+      let firstSelected = null;
+      let isAnimating = false; // 애니메이션 중 클릭 방지
+      const canvas = document.getElementById("game-canvas");
+      const ctx = canvas.getContext("2d");
 
-        <div class="calendar-grid">
-          <div class="day-name">일</div>
-          <div class="day-name">월</div>
-          <div class="day-name">화</div>
-          <div class="day-name">수</div>
-          <div class="day-name">목</div>
-          <div class="day-name">금</div>
-          <div class="day-name">토</div>
+      function initGame() {
+        const boardElement = document.getElementById("game-board");
+        boardElement.style.gridTemplateColumns = `repeat(${COLS}, var(--tile-size))`;
+        boardElement.innerHTML = "";
+        board = [];
+        firstSelected = null;
+        isAnimating = false;
+        clearCanvas();
 
-          <div class="day empty"></div>
-          <div class="day empty"></div>
-          <div class="day empty"></div>
-          <div class="day empty"></div>
-          <div class="day empty"></div>
-          <div class="day">
-            <span class="date">1</span>
-          </div>
+        // 캔버스 크기 설정 (보드 전체 크기에 맞춤)
+        const totalWidth = COLS * TILE_SIZE + (COLS - 1) * GAP_SIZE;
+        const totalHeight = ROWS * TILE_SIZE + (ROWS - 1) * GAP_SIZE;
+        canvas.width = totalWidth;
+        canvas.height = totalHeight;
 
-          <div class="day">
-            <span class="date">2</span>
-            <div class="event holiday">🇺🇸 휴장 (추수감사절)</div>
-          </div>
+        let items = [];
+        for (let i = 0; i < ((ROWS - 2) * (COLS - 2)) / 2; i++) {
+          const emoji = EMOJIS[i % EMOJIS.length];
+          items.push(emoji, emoji);
+        }
+        items.sort(() => Math.random() - 0.5);
 
-          <div class="day active-day">
-            <span class="date">3</span>
-            <div class="event policy">🏛️ FOMC 정책 금리 발표</div>
-            <div class="event earnings">🍎 Apple 실적 발표</div>
-          </div>
+        let idx = 0;
+        for (let r = 0; r < ROWS; r++) {
+          board[r] = [];
+          for (let c = 0; c < COLS; c++) {
+            if (r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1) {
+              board[r][c] = null;
+            } else {
+              board[r][c] = items[idx++];
+            }
+            renderTile(r, c);
+          }
+        }
+      }
 
-          <div class="day">
-            <span class="date">4</span>
-            <div class="event indicator">📊 미국 비농업 고용지표</div>
-          </div>
+      function renderTile(r, c) {
+        const boardElement = document.getElementById("game-board");
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.id = `tile-${r}-${c}`; // ID 부여 (선택 해제 시 사용)
 
-          <div class="day">
-            <span class="date">5</span>
-            <div class="event policy">🏦 ECB 통화 정책 회의</div>
-          </div>
+        if (!board[r][c]) {
+          tile.classList.add("empty");
+        } else {
+          tile.textContent = board[r][c];
+          tile.onclick = () => onTileClick(r, c, tile);
+        }
+        boardElement.appendChild(tile);
+      }
 
-          <div class="day">
-            <span class="date">6</span>
-            <div class="event conference">💡 Global Tech 컨퍼런스</div>
-          </div>
+      function onTileClick(r, c, el) {
+        if (isAnimating) return; // 애니메이션 중에는 클릭 무시
 
-          <div class="day">
-            <span class="date">7</span>
-            <div class="event ipo">🇨🇳 대형 IPO 청약 시작</div>
-          </div>
+        if (firstSelected) {
+          if (firstSelected.r === r && firstSelected.c === c) {
+            // 같은거 다시 클릭하면 선택 취소
+            el.classList.remove("selected");
+            firstSelected = null;
+            return;
+          }
 
-          <div class="day">
-            <span class="date">8</span>
-          </div>
-          <div class="day">
-            <span class="date">9</span>
-          </div>
-          <div class="day">
-            <span class="date">10</span>
-          </div>
-          <div class="day">
-            <span class="date">11</span>
-          </div>
-          <div class="day">
-            <span class="date">12</span>
-          </div>
-          <div class="day">
-            <span class="date">13</span>
-          </div>
-          <div class="day">
-            <span class="date">14</span>
-          </div>
-          <div class="day">
-            <span class="date">15</span>
-          </div>
-        </div>
-      </section>
-    </main>
+          const r1 = firstSelected.r,
+            c1 = firstSelected.c;
 
-    <footer class="related-content">
-      <h3>🔗 이벤트 연관 뉴스/분석 (선택된 이벤트: FOMC 정책 금리 발표)</h3>
-      <p>글로벌 이슈 기반 콘텐츠 노출 증대로 광고/데이터 부가가치 향상 기대</p>
-      <ul>
-        <li>
-          <a href="#"
-            >[속보] 연준, 금리 동결... 시장 예상치 부합 (한국경제 뉴스 연계)</a
-          >
-        </li>
-        <li>
-          <a href="#"
-            >[분석] 금리 동결에도 강달러 유지되는 이유 (심층 리포트)</a
-          >
-        </li>
-        <li><a href="#">[전망] 다음 FOMC까지의 시장 변동성 예측</a></li>
-      </ul>
-    </footer>
+          // 두 번째 클릭한 타일도 선택 표시
+          el.classList.add("selected");
+
+          // 패가 같고, 경로가 존재하는지 확인
+          if (board[r1][c1] === board[r][c]) {
+            const path = findPath(r1, c1, r, c);
+            if (path) {
+              // 매칭 성공 및 경로 있음 -> 애니메이션 시작
+              isAnimating = true;
+              drawPath(path);
+
+              // 0.3초 후 타일 제거 및 선 지우기
+              setTimeout(() => {
+                board[r1][c1] = null;
+                board[r][c] = null;
+                clearCanvas();
+                refreshBoard();
+                isAnimating = false;
+                firstSelected = null;
+              }, 300); // 300ms 딜레이
+            } else {
+              // 매칭 실패 (경로 없음)
+              resetSelection(el);
+            }
+          } else {
+            // 매칭 실패 (모양 다름)
+            resetSelection(el);
+          }
+        } else {
+          firstSelected = { r, c };
+          el.classList.add("selected");
+        }
+      }
+
+      function resetSelection(currentEl) {
+        // 약간의 딜레이 후 선택 표시 해제 (사용자가 실패를 인지하도록)
+        isAnimating = true;
+        setTimeout(() => {
+          if (firstSelected) {
+            const firstEl = document.getElementById(
+              `tile-${firstSelected.r}-${firstSelected.c}`
+            );
+            if (firstEl) firstEl.classList.remove("selected");
+          }
+          currentEl.classList.remove("selected");
+          firstSelected = null;
+          isAnimating = false;
+        }, 200);
+      }
+
+      // BFS 경로 찾기 (경로 배열 반환)
+      function findPath(r1, c1, r2, c2) {
+        const dr = [-1, 1, 0, 0]; // 상하좌우
+        const dc = [0, 0, -1, 1];
+        // 큐 요소: { 좌표r, 좌표c, 이전방향, 꺾인횟수, 부모노드(경로추적용) }
+        const queue = [{ r: r1, c: c1, dir: -1, turns: -1, parent: null }];
+        // 방문 체크: 해당 좌표에 도달했을 때의 최소 꺾임 횟수를 저장
+        const visited = Array.from({ length: ROWS }, () =>
+          Array(COLS).fill(Infinity)
+        );
+
+        while (queue.length > 0) {
+          const curr = queue.shift();
+
+          if (curr.turns > 2) continue;
+          if (curr.r === r2 && curr.c === c2) {
+            return reconstructPath(curr); // 경로 구성 후 반환
+          }
+
+          for (let i = 0; i < 4; i++) {
+            const nr = curr.r + dr[i];
+            const nc = curr.c + dc[i];
+            // 방향이 같거나 처음 시작이면 꺾임 횟수 유지, 다르면 +1
+            const nextTurns =
+              curr.dir === i || curr.dir === -1 ? curr.turns : curr.turns + 1;
+
+            if (
+              nr >= 0 &&
+              nr < ROWS &&
+              nc >= 0 &&
+              nc < COLS &&
+              nextTurns <= 2
+            ) {
+              // 더 적거나 같은 꺾임 횟수로 도달한 경우만 진행
+              if (visited[nr][nc] >= nextTurns) {
+                // 목적지이거나 빈 공간이어야 이동 가능
+                if ((nr === r2 && nc === c2) || board[nr][nc] === null) {
+                  visited[nr][nc] = nextTurns;
+                  queue.push({
+                    r: nr,
+                    c: nc,
+                    dir: i,
+                    turns: nextTurns,
+                    parent: curr,
+                  });
+                }
+              }
+            }
+          }
+        }
+        return null; // 경로 없음
+      }
+
+      // 경로 역추적 함수
+      function reconstructPath(node) {
+        const path = [];
+        let curr = node;
+        while (curr) {
+          path.unshift({ r: curr.r, c: curr.c }); // 배열 앞에 추가
+          curr = curr.parent;
+        }
+        return path;
+      }
+
+      // 캔버스에 선 그리기
+      function drawPath(path) {
+        if (!path || path.length < 2) return;
+
+        ctx.beginPath();
+        ctx.strokeStyle = getComputedStyle(document.documentElement)
+          .getPropertyValue("--line-color")
+          .trim();
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        const startPos = getTileCenter(path[0].r, path[0].c);
+        ctx.moveTo(startPos.x, startPos.y);
+
+        for (let i = 1; i < path.length; i++) {
+          const pos = getTileCenter(path[i].r, path[i].c);
+          ctx.lineTo(pos.x, pos.y);
+        }
+        ctx.stroke();
+      }
+
+      // 타일의 중심 좌표 계산 (캔버스 기준)
+      function getTileCenter(r, c) {
+        const x = c * (TILE_SIZE + GAP_SIZE) + TILE_SIZE / 2;
+        const y = r * (TILE_SIZE + GAP_SIZE) + TILE_SIZE / 2;
+        return { x, y };
+      }
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function refreshBoard() {
+        const boardElement = document.getElementById("game-board");
+        boardElement.innerHTML = "";
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            renderTile(r, c);
+          }
+        }
+      }
+
+      initGame();
+    </script>
   </body>
 </html>
